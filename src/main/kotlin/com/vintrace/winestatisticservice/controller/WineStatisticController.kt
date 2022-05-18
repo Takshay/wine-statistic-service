@@ -37,7 +37,7 @@ class WineStatisticController {
 
     @GetMapping(value = ["/year-variety/{lotCode}"], produces = [MediaType.APPLICATION_JSON_VALUE])
     fun yearVariety(@PathVariable lotCode: String): Mono<ResponseEntity<Statistics>> {
-        return statisticService.byYear(lotCode)
+        return statisticService.byYearVariety(lotCode)
                 .flatMap { statistic -> Mono.just(ResponseEntity.ok(statistic)) }
     }
 }

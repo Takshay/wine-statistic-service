@@ -31,6 +31,11 @@
 			"year":2010,
 			"variety":"Chardonnay",
 			"region":"Macedon"
+		},{
+			"percentage":20.0,
+			"year":2010,
+			"variety":"Chardonnay",
+			"region":"Yarra Valley"
 		}
 	]
 }

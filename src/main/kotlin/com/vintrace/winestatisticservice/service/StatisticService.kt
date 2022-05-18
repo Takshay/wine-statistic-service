@@ -14,55 +14,62 @@ import java.net.URL
 open class StatisticService()
 {
     @Throws(Exception::class)
-    open fun byYear(lotCode: String) : Mono<Statistics> {
-        val resource: URL? = getFilePathIfExist(lotCode)
+    fun byYear(lotCode: String) : Mono<Statistics> {
+        val resource: URL = this::class.java.getResource("/json/$lotCode.json")
+            ?: return Mono.error(ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid lotCode"))
         return Mono.just(jacksonObjectMapper().readValue(resource, WineData::class.java))
                 .onErrorMap { e -> throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Something Went Wrong", e) }
                 .flatMap { wineData ->
                     Mono.just(Statistics("year", wineData.components.groupBy { it.year }
                             .mapValues { (_, percentage) -> percentage.sumOf { it.percentage } }
-                            .map { BreakDown(it.value, it.key.toString()) }))
+                            .map { BreakDown(it.value, it.key.toString()) }
+                            .sortedByDescending { it.percentage }
+                    ))
                 }
 
     }
 
-    open fun byVariety(lotCode: String) :Mono<Statistics> {
-        val resource: URL? = getFilePathIfExist(lotCode)
+    fun byVariety(lotCode: String) :Mono<Statistics> {
+        val resource: URL = this::class.java.getResource("/json/$lotCode.json")
+            ?: return Mono.error(ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid lotCode"))
         return Mono.just(jacksonObjectMapper().readValue(resource, WineData::class.java))
                 .onErrorMap { e -> throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Something Went Wrong", e) }
                 .flatMap { wineData ->
                     Mono.just(Statistics("variety", wineData.components.groupBy { it.variety }
                             .mapValues { (_, percentage) -> percentage.sumOf { it.percentage } }
-                            .map { BreakDown(it.value, it.key.toString()) }))
+                            .map { BreakDown(it.value, it.key) }
+                            .sortedByDescending { it.percentage }
+                    ))
                 }
 
     }
 
-    open fun byRegion(lotCode: String) :Mono<Statistics> {
-        val resource: URL? = getFilePathIfExist(lotCode)
+    fun byRegion(lotCode: String) :Mono<Statistics> {
+        val resource: URL = this::class.java.getResource("/json/$lotCode.json")
+            ?: return Mono.error(ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid lotCode"))
         return Mono.just(jacksonObjectMapper().readValue(resource, WineData::class.java))
                 .onErrorMap { e -> throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Something Went Wrong", e) }
                 .flatMap { wineData ->
                     Mono.just(Statistics("region", wineData.components.groupBy { it.region }
                             .mapValues { (_, percentage) -> percentage.sumOf { it.percentage } }
-                            .map { BreakDown(it.value, it.key.toString()) }))
+                            .map { BreakDown(it.value, it.key) }
+                            .sortedByDescending { it.percentage }
+                    ))
                 }
     }
 
-    open fun byYearVariety(lotCode: String) :Mono<Statistics> {
-        val resource: URL? = getFilePathIfExist(lotCode)
+    fun byYearVariety(lotCode: String) :Mono<Statistics> {
+        val resource: URL = this::class.java.getResource("/json/$lotCode.json")
+            ?: return Mono.error(ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid lotCode"))
         return Mono.just(jacksonObjectMapper().readValue(resource, WineData::class.java))
                 .onErrorMap { e -> throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Something Went Wrong", e) }
                 .flatMap { wineData ->
-                    Mono.just(Statistics("year-variety", wineData.components.groupBy { it.year }
+                    Mono.just(Statistics("year-variety", wineData.components.groupBy( {listOf(it.year, it.variety)})
                             .mapValues { (_, percentage) -> percentage.sumOf { it.percentage } }
-                            .map { BreakDown(it.value, it.key.toString()) }))
+                            .map { BreakDown(it.value, it.key.toString()) }
+                            .sortedByDescending { it.percentage }
+                    ))
                 }
-    }
-
-    fun getFilePathIfExist(lotCode: String): URL? {
-        return this::class.java.getResource("/json/$lotCode.json")
-                ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid lotCode")
     }
 }
 
